@@ -1,0 +1,44 @@
+const OverwatchStartMessages = [
+  "bro {user}, wtf?",
+  "Look who's playing Overwatch! It's {user}, what a LOSER",
+  "I'm so disappointed in you, {user}",
+  "{user}... what a disappointment",
+  "{user}... yikes bro. couldn't be me",
+];
+
+const OverwatchStopMessages = [
+  "Great, {user} stopped playing Overwatch after {time}",
+  "{time} gone... why?",
+  "{user} spent {time} losing overwatch games, lmao",
+  "{user} stopped playing Overwatch after {time}. Congratulations!",
+  "{user} wasted {time} of their life playing Overwatch! LOL!",
+  "Those {time} are gone forever, hope you're proud of yourself {user}!",
+];
+
+const OverwatchHourMessages = [
+  "Wow {user} what would your parents think of you right now?",
+  "Okay {user}, you can stop trolling now.",
+  "{user} could have just hit the gym for the last hour...",
+  "haha okay kiddos, pranks over, you can turn it off now",
+  "lmao okay {user}, you got me! lets stop being cringe now",
+];
+
+const OverwatchTwoHourMessages = [
+  "Stop it, stop it, STOP ITTTTT. STOP PLAYING OVERWATCH!!",
+  "TURN OFF OVERWATCH NOWWWWW!!!!!!!!",
+  "This stopped being funny an two hours ago.",
+  "{user} you're an embarrassment to your entire family",
+];
+
+const OverwatchFiveHourMessages = [
+  "{user} has been playing overwatch for five hours! congrats!",
+  "okay everyone make sure to congratulate {user} on forever being cringe",
+];
+
+module.exports = {
+  OverwatchStartMessages,
+  OverwatchStopMessages,
+  OverwatchHourMessages,
+  OverwatchTwoHourMessages,
+  OverwatchFiveHourMessages,
+};

@@ -51,6 +51,12 @@ for (const file of eventFiles) {
   }
 }
 
+// Importing the presenceUpdate.js file
+const presenceUpdateModule = require("./events/presenceUpdate.js");
+
+// Add the startOverwatchTrackingInterval function to the client
+presenceUpdateModule.startOverwatchTrackingInterval(client);
+
 // Log in to Discord with your app's token
 client.login(token).catch((error) => {
   console.error("Failed to log in:", error);

@@ -49,29 +49,19 @@ module.exports = {
         ],
       },
       {
-        keywords: ["timmy sucks at overwatch", "timmy sucks at ow", "timmy sucks at ow2"],
+        keywords: ["timmy sucks at overwatch", "timmy sucks at ow"],
         responses: ["..."],
       },
       {
-        keywords: [
-          "bye timmy",
-          "goodbye timmy",
-          "bye tim",
-          "goodbye tim",
-          "bye tommy",
-          "goodbye tommy",
-          "cya tommy",
-          "cya timmy",
-          "goodnight tim",
-        ],
+        keywords: ["bye tim", "goodbye tim", "bye tommy", "cya tom", "cya tim", "goodnight tim"],
         responses: ["Peace", "ttyl"],
       },
       {
-        keywords: ["timmy", "tim", "tommy"],
+        keywords: ["timmy", " tim ", "tommy"],
         responses: ["What's up?", "What do you want?", "Yo did you call me?"],
       },
       {
-        keywords: ["want to game", "want to play", "gamers", "gaymers", "wanna game", "wanna play"],
+        keywords: ["want to game", "want to play", "gamers", "wanna game", "wanna play"],
         responses: [
           "I'm watching youtube right now",
           "I'm tired",

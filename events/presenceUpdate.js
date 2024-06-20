@@ -1,48 +1,80 @@
-const { Collection, GuildChannel } = require("discord.js");
-const { Events } = require("discord.js");
+const { Collection, Events } = require("discord.js");
+const { quarantineChannelId } = require("../config.json"); // replace with your channel ID
+const {
+  OverwatchStartMessages,
+  OverwatchStopMessages,
+  OverwatchHourMessages,
+  OverwatchTwoHourMessages,
+  OverwatchFiveHourMessages,
+} = require("../assets/activityMessages");
 const OverwatchStartTimes = new Collection();
+const OverwatchMessagesSent = new Collection();
 
-const OverwatchStartMessages = [
-  "bro {user}, what are you doing?",
-  "Look who's playing Overwatch! It's {user}, what a loser",
-  "{user}, what the fudge bro?",
-  "I'm so disappointed in you, {user}",
-  "{user}... what a disappointment",
-  "{user}... yikes bro. couldn't be me",
-];
+function startOverwatchTrackingInterval(client) {
+  setInterval(() => {
+    const now = Date.now();
 
-const OverwatchStopMessages = [
-  "Thank God, {user} stopped playing Overwatch",
-  "Haha, good prank {user}, I almost fell for it!",
-  "{user} stopped playing Overwatch after {time}. Congratulations!",
-  "Good job quitting your career of being cringe, {user}!",
-  "{user} wasted {time} of their life playing Overwatch! LOL!",
-  "Those {time} are gone forever, hope you're proud of yourself {user}!",
-];
+    OverwatchStartTimes.forEach((startTime, memberId) => {
+      const elapsedTime = now - startTime;
+      const user = client.guilds.cache.map((guild) => guild.members.cache.get(memberId)).find((member) => member);
+      const currentActivity = user?.presence?.activities.find((activity) =>
+        activity.name.toLowerCase().includes("overwatch")
+      );
+      const channel = client.channels.cache.get(quarantineChannelId); // Set to the channel ID you want to send messages to
 
-const OverwatchHourMessages = [
-  "Okay {user}, you can stop trolling now.",
-  "{user} could have just hit the gym for the last hour...",
-  "haha okay kiddos, pranks over, you can turn it off now",
-  "lmao okay {user}, you got me! lets stop being cringe now",
-];
+      console.log(`Checking user with ID ${memberId} with time ${elapsedTime} and activity ${currentActivity}`);
 
-const OverwatchTwoHourMessages = [
-  "Stop it, stop it, STOP ITTTTT. STOP PLAYING OVERWATCH!!",
-  "son of  FJAIOFWESASD;THFCHASDH!!!!!! TURN OFF OVERWATCH NOWWWWW",
-  "{user} is dead to me.",
-  "This stopped being funny an two hours ago.",
-];
+      if (!currentActivity) {
+        return; // User is no longer playing Overwatch
+      }
 
-const OverwatchFiveHourMessages = [
-  "{user} has been playing overwatch for five hours! Congrats!",
-  "okay everyone make sure to congratulate {user} on forever being a LOSER",
-];
+      const messagesSent = OverwatchMessagesSent.get(memberId) || { hour: false, twoHour: false, fiveHour: false };
+
+      // 1 hour
+      if (elapsedTime > 3600000 && !messagesSent.hour) {
+        console.log(`User with ID ${memberId} has been playing Overwatch for an hour`);
+        const randomMessage = OverwatchHourMessages[Math.floor(Math.random() * OverwatchHourMessages.length)];
+        let message = randomMessage
+          .replace("{user}", `<@${memberId}>`)
+          .replace("{time}", `${Math.floor(elapsedTime / 60000)} minutes`);
+        channel.send(message);
+        messagesSent.hour = true;
+      }
+
+      // 2 hours
+      if (elapsedTime > 7200000 && !messagesSent.twoHour) {
+        console.log(`User with ID ${memberId} has been playing Overwatch for two hours`);
+        const randomMessage = OverwatchTwoHourMessages[Math.floor(Math.random() * OverwatchTwoHourMessages.length)];
+        let message = randomMessage
+          .replace("{user}", `<@${memberId}>`)
+          .replace("{time}", `${Math.floor(elapsedTime / 60000)} minutes`);
+        channel.send(message);
+        messagesSent.twoHour = true;
+      }
+
+      // 5 hours
+      if (elapsedTime > 18000000 && !messagesSent.fiveHour) {
+        console.log(`User with ID ${memberId} has been playing Overwatch for five hours`);
+        const randomMessage = OverwatchFiveHourMessages[Math.floor(Math.random() * OverwatchFiveHourMessages.length)];
+        let message = randomMessage
+          .replace("{user}", `<@${memberId}>`)
+          .replace("{time}", `${Math.floor(elapsedTime / 60000)} minutes`);
+        channel.send(message);
+        messagesSent.fiveHour = true;
+      }
+
+      OverwatchMessagesSent.set(memberId, messagesSent);
+    });
+  }, 60000); // Check every minute (60000 milliseconds)
+}
 
 module.exports = {
   name: Events.PresenceUpdate,
+  OverwatchStartTimes,
+  OverwatchMessagesSent,
+  startOverwatchTrackingInterval,
   execute(oldPresence, newPresence) {
-    const channel = newPresence.guild.channels.cache.get("1110247534498160820");
+    const channel = newPresence.guild.channels.cache.get(quarantineChannelId);
 
     const oldActivity = oldPresence?.activities.find((activity) => activity.name.toLowerCase().includes("overwatch"));
     const newActivity = newPresence?.activities.find((activity) => activity.name.toLowerCase().includes("overwatch"));
@@ -51,42 +83,25 @@ module.exports = {
     if (!oldActivity && newActivity) {
       console.log(`${newPresence.user.tag} started playing Overwatch`);
       OverwatchStartTimes.set(newPresence.member.id, Date.now());
+      OverwatchMessagesSent.set(newPresence.member.id, { hour: false, twoHour: false, fiveHour: false });
       const randomMessage = OverwatchStartMessages[Math.floor(Math.random() * OverwatchStartMessages.length)];
-      const message = randomMessage.replace("{user}", `<@${newPresence.member.user.id}>`);
+      let message = randomMessage.replace("{user}", `<@${newPresence.member.user.id}>`);
       channel.send(message);
     }
 
     // If user stops playing Overwatch
     if (oldActivity && !newActivity) {
       console.log(`${newPresence.user.tag} stopped playing Overwatch`);
-      OverwatchStartTimes.delete(newPresence.member.id);
+      const startTime = OverwatchStartTimes.get(newPresence.member.id);
+      const time = Date.now() - startTime;
       const randomMessage = OverwatchStopMessages[Math.floor(Math.random() * OverwatchStopMessages.length)];
-      const message = randomMessage.replace("{user}", `<@${newPresence.member.user.id}>`);
-      channel.send(message);
-    }
 
-    // If user has been playing Overwatch for an hour
-    if (newActivity && Date.now() - OverwatchStartTimes.get(newPresence.member.id) > 3600000) {
-      console.log(`${newPresence.user.tag} has been playing Overwatch for an hour`);
-      const randomMessage = OverwatchHourMessages[Math.floor(Math.random() * OverwatchHourMessages.length)];
-      const message = randomMessage.replace("{user}", `<@${newPresence.member.user.id}>`);
+      let message = randomMessage
+        .replace("{user}", `<@${newPresence.member.user.id}>`)
+        .replace("{time}", `${Math.floor(time / 60000)} minutes`);
       channel.send(message);
-    }
-
-    // If user has been playing Overwatch for two hours
-    if (newActivity && Date.now() - OverwatchStartTimes.get(newPresence.member.id) > 7200000) {
-      console.log(`${newPresence.user.tag} has been playing Overwatch for two hours`);
-      const randomMessage = OverwatchTwoHourMessages[Math.floor(Math.random() * OverwatchTwoHourMessages.length)];
-      const message = randomMessage.replace("{user}", `<@${newPresence.member.user.id}>`);
-      channel.send(message);
-    }
-
-    // If user has been playing Overwatch for five hours
-    if (newActivity && Date.now() - OverwatchStartTimes.get(newPresence.member.id) > 18000000) {
-      console.log(`${newPresence.user.tag} has been playing Overwatch for five hours`);
-      const randomMessage = OverwatchFiveHourMessages[Math.floor(Math.random() * OverwatchFiveHourMessages.length)];
-      const message = randomMessage.replace("{user}", `<@${newPresence.member.user.id}>`);
-      channel.send(message);
+      OverwatchStartTimes.delete(newPresence.member.id);
+      OverwatchMessagesSent.delete(newPresence.member.id);
     }
   },
 };
